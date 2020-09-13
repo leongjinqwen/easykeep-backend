@@ -70,7 +70,6 @@ def show(assess_id):
         return jsonify({
             "status": True,
             "assessment": assessment,
-            
             "accounts" : accounts
         }),200
     else:
