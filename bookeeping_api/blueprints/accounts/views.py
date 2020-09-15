@@ -15,7 +15,7 @@ def index(business_id):
     user = User.get_or_none(User.username==username)
     business = Business.get_or_none(Business.id==business_id, Business.user==user)
     if user and business:
-        account_list = [{"id":a.id,"name":a.name,"number":a.account_number,"type":a.acc_type } for a in Account.select().where(Account.business==business.id)]
+        account_list = [{"id":a.id,"name":a.name,"number":a.account_number,"type":a.acc_type } for a in Account.select().where(Account.business==business.id).order_by(Account.acc_type) ]
         return jsonify({
             "status": True,
             "accounts": account_list

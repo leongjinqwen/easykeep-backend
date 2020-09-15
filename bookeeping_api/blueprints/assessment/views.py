@@ -3,6 +3,7 @@ from flask_jwt_extended import jwt_required, get_jwt_identity
 from models.user import User
 from models.business import Business
 from models.assessment import Assessment
+from models.account import Account
 
 assessment_api_blueprint = Blueprint('assessment_api',
                              __name__,
@@ -65,7 +66,7 @@ def show(assess_id):
     user = User.get_or_none(User.username==username)
     assess = Assessment.get_or_none(Assessment.id==assess_id)
     if user and assess:
-        accounts = [{"id":acc.id,"name":acc.name,"acc_num":acc.account_number, "acc_type":acc.acc_type} for acc in assess.business.accounts]
+        accounts = [{"id":acc.id,"name":acc.name,"acc_num":acc.account_number, "acc_type":acc.acc_type} for acc in Account.select().where(Account.business==assess.business.id).order_by(Account.acc_type)]
         assessment = { "id":assess.id,"y_a":assess.year_assessment,"y_e":assess.year_ended, "business_id":assess.business.id,"business": assess.business.name, }
         return jsonify({
             "status": True,

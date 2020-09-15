@@ -125,3 +125,40 @@ def edit(record_id):
             "status": False,
             "message": "No user/record found."
         })
+
+@records_api_blueprint.route('/reports/<assessment_id>', methods=['GET'])
+@jwt_required
+def reports(assessment_id):
+    username = get_jwt_identity()
+    user = User.get_or_none(User.username==username)
+    assessment = Assessment.get_or_none(Assessment.id==assessment_id)
+    if user and assessment.business.user==user:
+        assessment_data = assessment.total()
+        
+        balances = []
+        # combine all account list in one list
+        for key in assessment_data:
+            balances += assessment_data[key]['list']
+
+        return jsonify({
+            'status': True,
+            'tb': balances,
+            'bs': {
+              'equity' : assessment_data.get( 0, {'list':[], 'total': 0} ),
+              'f_assets': assessment_data.get( 1, {'list':[], 'total': 0} ),
+              'c_assets': assessment_data.get( 2, {'list':[], 'total': 0} ),
+              'n_c_liabilities': assessment_data.get( 3, {'list':[], 'total': 0} ),
+              'c_liabilities': assessment_data.get( 4, {'list':[], 'total': 0} ),
+            },
+            'pl': {
+              'sales' : assessment_data.get( 5, {'list':[], 'total': 0} ),
+              'incomes': assessment_data.get( 6, {'list':[], 'total': 0} ),
+              'purchases': assessment_data.get( 7, {'list':[], 'total': 0} ),
+              'expenses': assessment_data.get( 8, {'list':[], 'total': 0} )
+            },
+            'assessment': {
+              'assess_id':assessment.id,
+              'y_a':assessment.year_assessment,
+              'y_e':assessment.year_ended
+            }
+        })
