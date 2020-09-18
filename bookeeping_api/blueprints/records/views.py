@@ -133,28 +133,30 @@ def reports(assessment_id):
     user = User.get_or_none(User.username==username)
     assessment = Assessment.get_or_none(Assessment.id==assessment_id)
     if user and assessment.business.user==user:
-        assessment_data = assessment.total()
+        data = assessment.total()
         
         balances = []
+        default =  {'list':[], 'total': 0}
         # combine all account list in one list
-        for key in assessment_data:
-            balances += assessment_data[key]['list']
+        for key in data:
+            balances += data[key]['list']
 
         return jsonify({
             'status': True,
             'tb': balances,
             'bs': {
-              'equity' : assessment_data.get( 0, {'list':[], 'total': 0} ),
-              'f_assets': assessment_data.get( 1, {'list':[], 'total': 0} ),
-              'c_assets': assessment_data.get( 2, {'list':[], 'total': 0} ),
-              'n_c_liabilities': assessment_data.get( 3, {'list':[], 'total': 0} ),
-              'c_liabilities': assessment_data.get( 4, {'list':[], 'total': 0} ),
+              'equity' : data.get( 0, default),
+              'f_assets': data.get( 1, default),
+              'c_assets': data.get( 2, default),
+              'n_c_liabilities': data.get( 3, default),
+              'c_liabilities': data.get( 4, default),
+              'pl_bal' : data.get( 5, default)['total'] + data.get( 6, default)['total'] + data.get( 7, default)['total'] + data.get( 8, default)['total']
             },
             'pl': {
-              'sales' : assessment_data.get( 5, {'list':[], 'total': 0} ),
-              'incomes': assessment_data.get( 6, {'list':[], 'total': 0} ),
-              'purchases': assessment_data.get( 7, {'list':[], 'total': 0} ),
-              'expenses': assessment_data.get( 8, {'list':[], 'total': 0} )
+              'sales' : data.get( 5, default),
+              'incomes': data.get( 6, default),
+              'purchases': data.get( 7, default),
+              'expenses': data.get( 8, default)
             },
             'assessment': {
               'assess_id':assessment.id,
