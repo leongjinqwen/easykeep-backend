@@ -9,19 +9,33 @@ records_api_blueprint = Blueprint('records_api',
                              __name__,
                              template_folder='templates')
 
-@records_api_blueprint.route('/<assessment_id>', methods=['GET'])
+@records_api_blueprint.route('/<assessment_id>/<account_id>', methods=['GET'])
 @jwt_required
-def index(assessment_id):
+def index(assessment_id,account_id):
     username = get_jwt_identity()
     user = User.get_or_none(User.username==username)
     assess = Assessment.get_or_none(Assessment.id==assessment_id)
     if user and assess.business.user==user:
-        records_list = [{"id":r.id,"date":(r.date),"description":r.description, "reference":r.reference, "amount":(r.amount / 100),"account":r.account.account_number, "account_name":r.account.name, "account_id":r.account.id } for r in Record.select().where(Record.assessment==assess.id).order_by(Record.date)]
-        return jsonify({
-            "status": True,
-            "records": records_list,
-            "assess" : assess.year_assessment
-        })
+        if account_id == 'all':
+            records_list = [{"id":r.id,"date":(r.date),"description":r.description, "reference":r.reference, "amount":(r.amount / 100),"account":r.account.account_number, "account_name":r.account.name, "account_id":r.account.id } for r in Record.select().where(Record.assessment==assess.id).order_by(Record.date)]
+            return jsonify({
+                "status": True,
+                "records": records_list,
+                "assess" : assess.year_assessment
+            })
+        else:
+            records_list = [{"id":r.id,"date":(r.date),"description":r.description, "reference":r.reference, "amount":(r.amount / 100),"account":r.account.account_number, "account_name":r.account.name, "account_id":r.account.id } for r in Record.select().where(Record.assessment==assess.id,Record.account==account_id).order_by(Record.date)]
+            account = Account.get_by_id(account_id)
+            return jsonify({
+                "status": True,
+                "records": records_list,
+                "account" : {
+                    "id": account.id,
+                    "name": account.name,
+                    "number": account.account_number,
+                },
+                "assess" : assess.year_assessment
+            })
     else:
         return jsonify({
             "status": False,
