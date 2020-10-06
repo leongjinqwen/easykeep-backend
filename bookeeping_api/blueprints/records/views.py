@@ -178,3 +178,22 @@ def reports(assessment_id):
               'y_e':assessment.year_ended
             }
         })
+
+
+@records_api_blueprint.route('/charts/<assessment_id>', methods=['GET'])
+@jwt_required
+def charts(assessment_id):
+    username = get_jwt_identity()
+    user = User.get_or_none(User.username==username)
+    assessment = Assessment.get_or_none(Assessment.id==assessment_id)
+    if user and assessment.business.user==user:
+        return jsonify({
+            "status": True,
+            "list" : assessment.monthly_pnl(),
+            "assess" : assessment.year_assessment
+        })
+    else:
+        return jsonify({
+            "status": False,
+            "message": "No user/record found."
+        })

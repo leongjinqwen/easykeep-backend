@@ -50,3 +50,33 @@ class Assessment(BaseModel):
               acc['amount'] = ((acc['amount'])+ (r.amount / 100))
     return result
 
+  def monthly_pnl(self):
+    from models.record import Record
+    from models.account import Account
+
+    '''sample output : a list of object
+    [
+      { month: 'Jan', np: 200, gp: 300, exp:100 , revenue: 500, cos: 200 },
+      { month: 'Feb', np: 133, gp: 233, exp:100 , revenue: 333, cos: 100 },
+    ]
+    '''
+    # only profit/loss accounts ((5+6)-(7+8))
+    # get all records according to months
+    month_list = []
+    months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec']
+    for m in range(1,13):
+      result = {}
+      result['month'] = months[m-1]
+      result['np'] = 0
+      result['revenue'] = 0
+      result['exp'] = 0
+      for i in range(5,9):
+        records = Record.select().join(Account).where(Account.acc_type == i, Record.date.month == m, Record.assessment == self.id)
+        for r in records:
+          result['np'] -= r.amount/100
+          if r.account.acc_type in [5,6]: result['revenue'] -= r.amount/100
+          if r.account.acc_type in [7,8]: result['exp'] += r.amount/100
+      month_list.append(result)
+    return month_list
+
+
